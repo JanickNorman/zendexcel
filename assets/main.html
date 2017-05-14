@@ -13,9 +13,6 @@
 <body ng-app="MyApp">
 	<div ng-click='checkTickets()' ng-controller="ExcelController">
 		<js-xls onread="read" onerror="error"></js-xls>
-		<li ng-repeat="ticket in tickets track by $index">
-		  {{tickets[$index].subject}}
-		</li>
 	</div>
 
 
@@ -43,9 +40,7 @@
 	}])
 	.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, xlsx, zaf) {
 		$scope.tickets = [];
-		zaf.searchUser('yanicknorman@gmail.com', function(data) {
-			console.log(data);
-		});
+
 		$scope.read = function(workbook) {
 			var user_ticket_rows = to_json(workbook).Sheet1;
 
@@ -73,10 +68,6 @@
 
 		$scope.error = function(err) {
 
-		};
-
-		$scope.checkTickets = function() {
-			console.log($scope.tickets);
 		};
 
 		// TO JSON utils
