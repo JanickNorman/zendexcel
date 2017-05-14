@@ -11,12 +11,15 @@
 	  <title>Angular Js XLS</title>
 </head>
 <body ng-app="MyApp">
-	<div ng-click='checkTickets()' ng-controller="ExcelController">
+	<div ng-controller="ExcelController">
 		<js-xls onread="read" onerror="error"></js-xls>
+		<div ng-click="gantiTes">CREATED TICKETS</div>
+		<div>{{tes}}</div>
 	</div>
 
 
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+	<script type="text/javascript" src="jquery.min.js"></script>
 	<!--<script type="text/javascript" src="xlsx.core.min.js"></script>-->
 	<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
 	<script type="text/javascript" src="xlsx.full.min.js"></script>

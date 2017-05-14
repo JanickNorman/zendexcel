@@ -8,16 +8,35 @@ MyApp.factory('zafClient', function() {
 	});
 
 MyApp.service('zaf',['zafClient', function(zafClient) {
+
+	// this.testPromise = function() {
+	// 	$.when(zafClient.request({
+	// 		url: '/api/v2/users/search.json?query='+"jamichael@parle.com",
+	// 	 	type: 'GET',
+	// 	 	dataType: 'json'
+	// 	}).then(function(b) {
+	// 		console.log("kena");
+	// 	}), zafClient.request({
+	// 		url: '/api/v2/users/search.json?query='+"yanicknorman@gmail.com",
+	// 	 	type: 'GET',
+	// 	 	dataType: 'json'
+	// 	}).then(function(a) {
+	// 		console.log('ini juga kena');
+	// 	})).done(function() {
+	// 		console.log("semua udah dapet ya");
+	// 	});
+
+	// };
 	this.searchUser = function(email, callback) {
-		zafClient.request({
+		return zafClient.request({
 			url: '/api/v2/users/search.json?query='+email,
 			type: 'GET',
 			dataType: 'json'
-		}).then(callback);
+		});
 	};
 
-	this.createUser = function(user, callback, err) {
-		zafClient.request({
+	this.createUser = function(email, callback, err) {
+		return zafClient.request({
 			url: '/api/v2/users.json?async=true',
 			secure: true,
 			type: 'POST',
@@ -25,56 +44,154 @@ MyApp.service('zaf',['zafClient', function(zafClient) {
 			data: JSON.stringify(
 						{
 						  "user": {
-						    "email": user.email,
-						    "name": user.email.substring(0, user.email.indexOf("@")),
+						    "email": email,
+						    "name": email.substring(0, email.indexOf("@")),
 						    "verified": true
 						  }
 						}
 					)
-		}).then(callback, err);
+		});
+
 	};
+
+	this.createTickets = function(tickets, callback, err) {
+		return client.request({
+			  url: '/api/v2/tickets/create_many.json',
+			  secure: true,
+			  type: 'POST',
+			  contentType: 'application/json',
+			  data: JSON.stringify({
+				  "tickets": tickets
+				})
+		});
+
+	};
+
 }]);
 
 MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, xlsx, zaf) {
-	$scope.tickets = [];
-	zaf.createUser({email: "dad@don.com"},function(data) {
-		console.log(data);
-	}, function(err) {
-		console.log(err);
-	});
+	// zaf.createUser({email: "dad@don.com"},function(data) {
+	// 	if (data.responseJSON.error == "RecordInvalid") {
+	// 		return;
+	// 	}
+	// 	console.log(data);
+	// }, function(err) {
+	// 	console.log(err);
+	// });
 
+	//zaf.testPromise();
+	$scope.tes = "jackson";
+	$scope.tickets = [];
 	$scope.read = function(workbook) {
 		var user_ticket_rows = to_json(workbook).Sheet1;
 
+
 		user_ticket_rows.forEach(function(current_user_row) {
-			zaf.searchUser(current_user_row.Email, function(data) {
+			var user_promise = zaf.searchUser(current_user_row.Email);
+			var create_promise = user_promise.then(function(data) {
 				var user = data.users[0];
 
-		    		//if user doesn't exist
 				if (user === undefined) {
-					//createe the user first
-		    			return;
-		    		}
+					return zaf.createUser(current_user_row.Email);
+				}
 
 				$scope.tickets.push({
 					requester_id: user.id,
 					subject: current_user_row.Subject,
 					comment: {body: current_user_row.Body}
 				});
+				return user_promise;
 
 			});
-
+			console.log(current_user_row);
+			create_promise.then(function(data) {
+				if (data.count > 0) {
+					return;
+				}
+				var user = data.user;
+				console.log("ini user baru", user);
+				$scope.tickets.push({
+					requester_id: user.id,
+					subject: current_user_row.Subject,
+					comment: {body: current_user_row.Body}
+				});
+			});
 		});
 
+		$scope.gantiTes = function(){
+			$scope.tes = "DONO";
+		};
 
-		console.log($scope.tickets);
+			// zaf.searchUser(current_user_row.Email, function(data) {
+			// 	var user = data.users[0];
+
+		 //    		//if user doesn't exist
+			// 	if (user === undefined) {
+			// 		//"do you want to create users"
+			// 		console.log(current_user_row, " belum ada idnya nih");
+			// 		//createe the user first
+			// 		zaf.createUser(current_user_row.Email, function(data) {
+			// 			var userCreated = data.user;
+			// 			console.log(userCreated, ' succesfully created');
+			// 			tickets.push({
+			// 				requester_id: userCreated.id,
+			// 				subject: current_user_row.Subject,
+			// 				comment: {body: current_user_row.Body}
+			// 			});
+			// 		});
+			// 		console.log('this is the current tickets', tickets);
+			// 		return;
+
+		 //    		}
+
+		 //    		//add user along its id to the tickets collection
+			// 	tickets.push({
+			// 		requester_id: user.id,
+			// 		subject: current_user_row.Subject,
+			// 		comment: {body: current_user_row.Body}
+			// 	});
+			// });
+
+			// zaf.searchUser(current_user_row.Email, function(data) {
+			// 	var user = data.users[0];
+
+		 //    		//if user doesn't exist
+			// 	if (user === undefined) {
+			// 		//"do you want to create users"
+			// 		console.log(current_user_row, " belum ada idnya nih");
+			// 		//createe the user first
+			// 		zaf.createUser(current_user_row.Email, function(data) {
+			// 			var userCreated = data.user;
+			// 			console.log(userCreated, ' succesfully created');
+			// 			tickets.push({
+			// 				requester_id: userCreated.id,
+			// 				subject: current_user_row.Subject,
+			// 				comment: {body: current_user_row.Body}
+			// 			});
+			// 		});
+			// 		console.log('this is the current tickets', tickets);
+			// 		return;
+
+		 //    		}
+
+		 //    		//add user along its id to the tickets collection
+			// 	tickets.push({
+			// 		requester_id: user.id,
+			// 		subject: current_user_row.Subject,
+			// 		comment: {body: current_user_row.Body}
+			// 	});
+			// });
+
+		console.log(tickets);
+		console.log("ticketnya ada ", tickets.length);
+
 	};
 
 	$scope.error = function(err) {
 
 	};
 
-	// TO JSON utils
+	// TO JSON utils sementara
 	function to_json(workbook) {
 		var result = {};
 		workbook.SheetNames.forEach(function(sheetName) {
