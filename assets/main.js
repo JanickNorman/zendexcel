@@ -54,8 +54,8 @@ MyApp.service('zaf',['zafClient', function(zafClient) {
 
 	};
 
-	this.createTickets = function(tickets, callback, err) {
-		return client.request({
+	this.createTickets = function(tickets) {
+		return zafClient.request({
 			  url: '/api/v2/tickets/create_many.json',
 			  secure: true,
 			  type: 'POST',
@@ -80,8 +80,8 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, x
 	// });
 
 	//zaf.testPromise();
-	$scope.tes = "jackson";
 	$scope.tickets = [];
+	$scope.numOfTickets = 0;
 	$scope.read = function(workbook) {
 		var user_ticket_rows = to_json(workbook).Sheet1;
 
@@ -100,6 +100,7 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, x
 					subject: current_user_row.Subject,
 					comment: {body: current_user_row.Body}
 				});
+				$scope.numOfTickets++;
 				return user_promise;
 
 			});
@@ -115,76 +116,20 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, x
 					subject: current_user_row.Subject,
 					comment: {body: current_user_row.Body}
 				});
+				$scope.numOfTickets++;
 			});
 		});
 
-		$scope.gantiTes = function(){
-			$scope.tes = "DONO";
-		};
-
-			// zaf.searchUser(current_user_row.Email, function(data) {
-			// 	var user = data.users[0];
-
-		 //    		//if user doesn't exist
-			// 	if (user === undefined) {
-			// 		//"do you want to create users"
-			// 		console.log(current_user_row, " belum ada idnya nih");
-			// 		//createe the user first
-			// 		zaf.createUser(current_user_row.Email, function(data) {
-			// 			var userCreated = data.user;
-			// 			console.log(userCreated, ' succesfully created');
-			// 			tickets.push({
-			// 				requester_id: userCreated.id,
-			// 				subject: current_user_row.Subject,
-			// 				comment: {body: current_user_row.Body}
-			// 			});
-			// 		});
-			// 		console.log('this is the current tickets', tickets);
-			// 		return;
-
-		 //    		}
-
-		 //    		//add user along its id to the tickets collection
-			// 	tickets.push({
-			// 		requester_id: user.id,
-			// 		subject: current_user_row.Subject,
-			// 		comment: {body: current_user_row.Body}
-			// 	});
-			// });
-
-			// zaf.searchUser(current_user_row.Email, function(data) {
-			// 	var user = data.users[0];
-
-		 //    		//if user doesn't exist
-			// 	if (user === undefined) {
-			// 		//"do you want to create users"
-			// 		console.log(current_user_row, " belum ada idnya nih");
-			// 		//createe the user first
-			// 		zaf.createUser(current_user_row.Email, function(data) {
-			// 			var userCreated = data.user;
-			// 			console.log(userCreated, ' succesfully created');
-			// 			tickets.push({
-			// 				requester_id: userCreated.id,
-			// 				subject: current_user_row.Subject,
-			// 				comment: {body: current_user_row.Body}
-			// 			});
-			// 		});
-			// 		console.log('this is the current tickets', tickets);
-			// 		return;
-
-		 //    		}
-
-		 //    		//add user along its id to the tickets collection
-			// 	tickets.push({
-			// 		requester_id: user.id,
-			// 		subject: current_user_row.Subject,
-			// 		comment: {body: current_user_row.Body}
-			// 	});
-			// });
 
 		console.log(tickets);
 		console.log("ticketnya ada ", tickets.length);
 
+	};
+
+	$scope.createTickets = function(){
+		zaf.createTickets($scope.tickets);
+		console.log($scope.tickets, " are created");
+		$scope.tickets = [];
 	};
 
 	$scope.error = function(err) {
