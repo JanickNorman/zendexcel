@@ -120,7 +120,6 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, x
 			});
 		});
 
-
 		console.log(tickets);
 		console.log("ticketnya ada ", tickets.length);
 
@@ -128,6 +127,7 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, x
 
 	$scope.createTickets = function(){
 		zaf.createTickets($scope.tickets);
+		if ($scope.tickets.length < 1) return false;
 		console.log($scope.tickets, " are created");
 		$scope.tickets = [];
 	};
