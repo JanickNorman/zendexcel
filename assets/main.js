@@ -1,4 +1,4 @@
-var MyApp = angular.module('MyApp', ['angular-js-xlsx', 'ngTable']);
+var MyApp = angular.module('MyApp', ['angular-js-xlsx']);
 
 //need to be refactored ASAP
 MyApp.directive("dropzone", function() {
@@ -174,11 +174,15 @@ MyApp.service('zaf',['zafClient', function(zafClient) {
 
 }]);
 
-MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', 'NgTableParams', function($scope, xlsx, zaf, NgTableParams) {
+MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, xlsx, zaf) {
 	$scope.tickets = [];
 	$scope.numOfTickets = $scope.tickets.length;
 
-	$scope.tableParams = new NgTableParams({}, { dataset: $scope.tickets});
+
+
+
+
+
 
 	$scope.read = function(workbook) {
 		//initialize tickets, so that it will contain none during the start.
@@ -194,6 +198,7 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', 'NgTableParams', f
 					return zaf.createUser(current_user_row.Email);
 				}
 
+				$scope.tableParams.reload();
 				$scope.$apply(function() {
 					$scope.tickets.push({
 						requester_id: user.id,
@@ -215,12 +220,13 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', 'NgTableParams', f
 				console.log("ini user baru", user);
 
 				$scope.$apply(function() {
-					$scope.tickets.push({
+					$scope.$data.push({
 						requester_id: user.id,
 						subject: current_user_row.Subject,
 						comment: {body: current_user_row.Body},
 						_meta: current_user_row
 					});
+					$scope.tableParams.reload();
 				});
 
 			});
