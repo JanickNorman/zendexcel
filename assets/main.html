@@ -11,41 +11,84 @@
 	<!-- Latest compiled and minified CSS -->
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
 	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
+
+	<!-- UI -->
+	<link rel="stylesheet" href="css/lib/ui-uploader.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/lib/ui-demo.css" rel="stylesheet" />
+	<link rel="stylesheet" href="css/lib/ui-simple-demo.css" rel="stylesheet" />
 	 <title>Angular Js XLS</title>
 </head>
 <body ng-app="MyApp">
-	<div class="navbar navbar-default">
-		<div class="container">
-		<h3 class="text-center">Spreadsheet to Tickets converter</h3>
-			<div ng-controller="ExcelController" class="container">
-				<div class="row">
-					<div class="fileinput fileinput-new input-group" data-provides="fileinput">
-					  	<div class="form-control" data-trigger="fileinput"><i class="glyphicon glyphicon-file fileinput-exists"></i> <span class="fileinput-filename"></span></div>
-					  	<span class="input-group-addon btn btn-default btn-file"><span class="fileinput-new">Select file</span><span class="fileinput-exists">Change</span><js-xls onread="read" onerror="error"></js-xls></span>
-					  	<a href="#" class="input-group-addon btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
-					</div>
-					    <div class="col-md-2 col-md-offset-5">
-						<button ng-click="createTickets(tickets)">CREATE {{numOfTickets}} TICKETS</button>
-					    </div>
+	<div class="container">
+	<h3 class="text-center">Spreadsheet to Tickets converter</h3>
+		<div ng-controller="ExcelController" class="container">
+<!-- 				<div class="row">
+				<div class="fileinput fileinput-new input-group" data-provides="fileinput">
+					<div class="form-control" data-trigger="fileinput"><i class="glyphicon glyphicon-file fileinput-exists"></i> <span class="fileinput-filename"></span></div>
+					<span class="input-group-addon btn btn-default btn-file"><span class="fileinput-new">Select file</span><span class="fileinput-exists">Change</span><js-xls onread="read" onerror="error"></js-xls></span>
+					<a href="#" class="input-group-addon btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
 				</div>
+					 <div class="col-md-2 col-md-offset-5">
+					<button ng-click="createTickets(tickets)">CREATE {{numOfTickets}} TICKETS</button>
+					 </div>
+			</div>
+-->
+			<!-- D&D zone -->
+
+			<div class="row">
+				 <div dropzone onread="read" onerror="error" id="drag-and-drop-zone" class="uploader">
+					<div>Drag &amp; Drop an Excel Here</div>
+					<div class="browser">
+						<label>
+<!-- 							 <input type="file" name="files" multiple="multiple" title='Click to add Files'>
+ -->							<!--  <js-xls onread="read" onerror="error"></js-xls> -->
+							<div ng-click="createTicketsBulk()">
+								 <span>Create {{tickets.length}} tickets</span>
+							</div>
+						  </label>
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<table class="table" ng-if="tickets.length > 0">
+					<thead>
+						<tr>
+							<th>Row number</th>
+							<th>Id</th>
+							<th>Email</th>
+							<th>Subject</th>
+							<th>Body</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr data-ng-repeat="ticket in tickets">
+							<td>{{ticket._meta.__rowNum__}}</td>
+							<td>{{ticket.requester_id}}</td>
+							<td>{{ticket._meta.Email}}</td>
+							<td>{{ticket.subject}}</td>
+							<td>{{ticket.comment.body}}</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>
 
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
-<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-	<script src="angular-smart-table/dist/smart-table.min.ks"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
+<!-- Latest compiled and minified JavaScript
+<!-- 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+ -->	<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script> -->
 	<script type="text/javascript" src="jquery.min.js"></script>
 	<!--<script type="text/javascript" src="xlsx.core.min.js"></script>-->
 	<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
 	<script type="text/javascript" src="xlsx.full.min.js"></script>
 	<script type="text/javascript" src="angular-js-xlsx.js"></script>
 
-
+	<!-- UI -->
+	<script type="text/javascript" src="js/lib/ui-demo.js"></script>
+    	<script type="text/javascript" src="js/lib/dmuploader.js"></script>
 
 	<script type="text/javascript" src="main.js"></script>
 </body>
