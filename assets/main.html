@@ -17,6 +17,10 @@
 	<link rel="stylesheet" href="css/lib/ui-uploader.css" rel="stylesheet" />
 	<link rel="stylesheet" href="css/lib/ui-demo.css" rel="stylesheet" />
 	<link rel="stylesheet" href="css/lib/ui-simple-demo.css" rel="stylesheet" />
+	
+	<!-- ngTable -->
+	<link rel="stylesheet"; href="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.css">
+
 	 <title>Angular Js XLS</title>
 </head>
 <body ng-app="MyApp">
@@ -51,8 +55,17 @@
 				</div>
 			</div>
 
-			<div class="row">
-				<table class="table" ng-if="tickets.length > 0">
+			<div class="row" ng-if="tickets.length > 0">
+
+				<table ng-table="tableParams" class="table table-condensed table-bordered table-striped">
+					<tr ng-repeat="ticket in tickets">
+						<td data-title="'Subject'" sortable="'subject'">{{ticket.subject}}</td>
+						<td data-title="'Body'">{{ticket.comment.body}}</td>
+					</tr>
+				</table>
+			</div>
+  
+<!-- 				<table class="table" ng-if="tickets.length > 0">
 					<thead>
 						<tr>
 							<th>Row number</th>
@@ -71,7 +84,7 @@
 							<td>{{ticket.comment.body}}</td>
 						</tr>
 					</tbody>
-				</table>
+				</table> -->
 			</div>
 		</div>
 	</div>
@@ -88,7 +101,11 @@
 
 	<!-- UI -->
 	<script type="text/javascript" src="js/lib/ui-demo.js"></script>
-    	<script type="text/javascript" src="js/lib/dmuploader.js"></script>
+    <script type="text/javascript" src="js/lib/dmuploader.js"></script>
+
+	<!-- ngTable -->
+	<script src="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.js"></script>
+
 
 	<script type="text/javascript" src="main.js"></script>
 </body>

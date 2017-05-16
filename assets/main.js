@@ -1,4 +1,4 @@
-var MyApp = angular.module('MyApp', ['angular-js-xlsx']);
+var MyApp = angular.module('MyApp', ['angular-js-xlsx', 'ngTable']);
 
 //need to be refactored ASAP
 MyApp.directive("dropzone", function() {
@@ -174,9 +174,12 @@ MyApp.service('zaf',['zafClient', function(zafClient) {
 
 }]);
 
-MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, xlsx, zaf) {
+MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', 'NgTableParams', function($scope, xlsx, zaf, NgTableParams) {
 	$scope.tickets = [];
 	$scope.numOfTickets = $scope.tickets.length;
+
+	$scope.tableParams = new NgTableParams({}, { dataset: $scope.tickets});
+
 	$scope.read = function(workbook) {
 		//initialize tickets, so that it will contain none during the start.
 		$scope.tickets = [];
