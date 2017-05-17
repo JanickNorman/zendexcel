@@ -11,14 +11,15 @@
 	<!-- Latest compiled and minified CSS -->
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
 
 	<!-- UI -->
 	<link rel="stylesheet" href="css/lib/ui-uploader.css" rel="stylesheet" />
 	<link rel="stylesheet" href="css/lib/ui-demo.css" rel="stylesheet" />
 	<link rel="stylesheet" href="css/lib/ui-simple-demo.css" rel="stylesheet" />
-	
-	<!-- datatable -->
+
+	<!-- ngtablle -->
+	<link rel="stylesheet"; href="https://unpkg.com/ng-table@2.0.2/bundles/ng-table.min.css">
+
 
 	 <title>Angular Js XLS</title>
 </head>
@@ -40,13 +41,52 @@
 			<!-- D&D zone -->
 
 			<div class="row">
+				<div class="alert alert-danger  fade in" ng-if="views.invalidRow.active ">
+					{{views.invalidRow.notify}}
+				</div>
+				<div class="alert alert-danger  fade in" ng-if="views.searchUsersError.active ">
+					{{views.searchUsersError.notify}}
+				</div>
+				<div class="alert alert-danger  fade in" ng-if="views.createUsersError.active ">
+					{{views.createUsersError.notify}}
+				</div>
+				<div class="alert alert-danger  fade in" ng-if="views.createTicketsError.active ">
+					{{views.createTicketsError.notify}}
+				</div>
+				<div class="alert alert-success  fade in" ng-if="views.successCreateTickets.active ">
+					{{views.successCreateTickets.notify}}
+				</div>
+				<div class="alert alert-success  fade in" ng-if="views.successCreateUser.active ">
+					{{views.successCreateUser.notify}}
+				</div>
+				<div class="alert alert-warning  fade in" ng-if="views.shouldCreateUser.active ">
+					{{views.shouldCreateUser.notify}}
+				</div>
+				<div class="alert alert-warning  fade in" ng-if="views.noUsersToCreate.active ">
+					{{views.noUsersToCreate.notify}}
+				</div>
+				<div class="alert alert-warning  fade in" ng-if="views.noTicketsToCreate.active ">
+					{{views.noTicketsToCreate.notify}}
+				</div>
+				<div class="alert alert-info  fade in" >
+					<ul>
+						<li>Harus ada kolom Email, Subject, dan Body di row teratas, kolom Name dan Role tidak wajib, tapi berguna ketika harus membuat user baru.</li>
+					</ul>
+				</div>
 				 <div dropzone onread="read" onerror="error" id="drag-and-drop-zone" class="uploader">
-					<div>Drag &amp; Drop an Excel Here</div>
+					<div>{{views.namefile}}</div>
 					<div class="browser">
 						<label>
 <!-- 							 <input type="file" name="files" multiple="multiple" title='Click to add Files'>
  -->							<!--  <js-xls onread="read" onerror="error"></js-xls> -->
-							<div ng-click="createTicketsBulk()">
+							<div ng-click="createManyUsers()" >
+								 <span>Create {{rows_meta.numOfNonmember}} users</span>
+							</div>
+						  </label>
+						<label>
+<!-- 							 <input type="file" name="files" multiple="multiple" title='Click to add Files'>
+ -->							<!--  <js-xls onread="read" onerror="error"></js-xls> -->
+							<div ng-click="createTickets()">
 								 <span>Create {{tickets.length}} tickets</span>
 							</div>
 						  </label>
@@ -54,37 +94,30 @@
 				</div>
 			</div>
 
-			<div class="row" ng-if="tickets.length > 0">
-
-				<table ng-table="tableParams" class="table table-condensed table-bordered table-striped">
-					<tr ng-repeat="ticket in $data">
-						<td data-title="'Requester Id'" sortable="'requester_id'">{{ticket.requester_id}}</td>
-						<td data-title="'Subject'" sortable="'subject'">{{ticket.subject}}</td>
-						<td data-title="'Body'" sortable="'comment.body'">{{ticket.comment.body}}</td>
+			<table class="table table-striped" ng-if="user_ticket_rows.length > 0">
+				<thead>
+					<tr>
+						<th>Row</th>
+						<th>Id</th>
+						<th>Name</th>
+						<th>Role</th>
+						<th>Email*</th>
+						<th>Subject*</th>
+						<th>Body*</th>
 					</tr>
-				</table>
-			</div>
-  
-<!-- 				<table class="table" ng-if="tickets.length > 0">
-					<thead>
-						<tr>
-							<th>Row number</th>
-							<th>Id</th>
-							<th>Email</th>
-							<th>Subject</th>
-							<th>Body</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr data-ng-repeat="ticket in tickets">
-							<td>{{ticket._meta.__rowNum__}}</td>
-							<td>{{ticket.requester_id}}</td>
-							<td>{{ticket._meta.Email}}</td>
-							<td>{{ticket.subject}}</td>
-							<td>{{ticket.comment.body}}</td>
-						</tr>
-					</tbody>
-				</table> -->
+				</thead>
+				<tbody>
+					<tr ng-class="{'warning': row.__exist__ == false, 'danger': validateRow(row) == false}" data-ng-repeat="row in user_ticket_rows">
+						<td>{{row.__rowNum__}}</td>
+						<td>{{row.Id ? row.Id : ""}}</td>
+						<td>{{row.Name}}</td>
+						<td>{{row.Role}}</td>
+						<td>{{row.Email}}</td>
+						<td>{{row.Subject}}</td>
+						<td>{{row.Body}}</td>
+					</tr>
+				</tbody>
+			</table>
 			</div>
 		</div>
 	</div>
@@ -94,6 +127,8 @@
 <!-- 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
  -->	<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script> -->
 	<script type="text/javascript" src="jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
 	<!--<script type="text/javascript" src="xlsx.core.min.js"></script>-->
 	<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
 	<script type="text/javascript" src="xlsx.full.min.js"></script>
@@ -101,9 +136,10 @@
 
 	<!-- UI -->
 	<script type="text/javascript" src="js/lib/ui-demo.js"></script>
-    <script type="text/javascript" src="js/lib/dmuploader.js"></script>
+    	<script type="text/javascript" src="js/lib/dmuploader.js"></script>
 
-	<!-- dataTable -->
+	<!-- ngtable -->
+    	<script type="text/javascript" src="js/lib/hashtable.js"></script>
 
 
 	<script type="text/javascript" src="main.js"></script>

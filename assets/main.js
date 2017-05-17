@@ -24,7 +24,7 @@ MyApp.directive("dropzone", function() {
 						/* if binary string, read with type 'binary' */
 						try {
 							var workbook = XLS.read(data, { type: 'binary' });
-
+							workbook.namefile = name;
  							if (attrs.onread) {
 								var handleRead = scope[attrs.onread];
 								if (typeof handleRead === "function") {
@@ -120,7 +120,7 @@ MyApp.factory('zafClient', function() {
 	});
 
 MyApp.service('zaf',['zafClient', function(zafClient) {
-	this.searchUser = function(email, callback) {
+	this.searchUser = function(email) {
 		return zafClient.request({
 			url: '/api/v2/users/search.json?query='+email,
 			type: 'GET',
@@ -128,7 +128,7 @@ MyApp.service('zaf',['zafClient', function(zafClient) {
 		});
 	};
 
-	this.createUser = function(email, callback, err) {
+	this.createUser = function(email, name, role) {
 		return zafClient.request({
 			url: '/api/v2/users.json?async=true',
 			secure: true,
@@ -172,107 +172,245 @@ MyApp.service('zaf',['zafClient', function(zafClient) {
 		});
 	};
 
+
+	this.createUsers = function(users) {
+		var role = "E";
+		var name = "none";
+
+		if (!name) name = email.substring(0, email.indexOf("@"));
+
+		return zafClient.request({
+			url: '/api/v2/users.json?async=true',
+			secure: true,
+			type: 'POST',
+			contentType: 'application/json',
+			data: JSON.stringify(
+						{
+						  "user": {
+							 "email": email,
+							 "name": name,
+							 "role": role,
+							 "verified": true
+						  }
+						}
+					)
+		});
+	}
+
 }]);
 
 MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, xlsx, zaf) {
 	$scope.tickets = [];
-	$scope.numOfTickets = $scope.tickets.length;
+
+	$scope.rows_meta = {
+		numOfNonmember: 0
+	};
+
+	$scope.views = {
+		namefile: "Drag and drop an excel file here",
+		shouldCreateUser: {
+			notify: "You should create the remaining users first",
+			active: false
+		},
+		noTicketsToCreate: {
+			notify: "There are no tickets to be created, please insert a new one",
+			active: false
+		},
+		successCreateUser: {
+			notify: "Success creating new users",
+			active: false
+		},
+		successCreateTickets: {
+			notify: "Success creating new tickets",
+			active: false
+		},
+		createTicketsError: {
+			notify: "Error creating ticket",
+			active: false
+		},
+		createUsersError: {
+			notify: "Error creating users",
+			active: false
+		},
+		searchUsersError: {
+			notify: "Error searching users",
+			active: false
+		},
+		invalidRow: {
+			notify: "Invalid row: Di Kolom pertama harus ada Email, Subject, dan Body (semua dengan awalan kapital) dan semua barisnya dibawah kolom tersebut haruslah diisi ",
+			active: false
+		},
+		noUsersToCreate: {
+			notify: "No users to be created",
+			active: false
+		}
+	};
+	$scope.init = function() {
+			$scope.views.noTicketsToCreate.active = false;
+			$scope.views.shouldCreateUser.active = false;
+			$scope.views.successCreateUser.active = false;
+			$scope.views.successCreateTickets.active = false;
+			$scope.views.createTicketsError.active = false;
+			$scope.views.createUsersError.active = false;
+			$scope.views.searchUsersError.active = false;
+			$scope.views.invalidRow.active = false;
+			$scope.views.noUsersToCreate.active = false;
 
 
 
+			$scope.rows_meta.numOfNonmember = 0;
+			$scope.tickets = [];
 
-
-
+			$scope.$apply();
+	};
 
 	$scope.read = function(workbook) {
-		//initialize tickets, so that it will contain none during the start.
-		$scope.tickets = [];
+		$scope.init();
 
-		var user_ticket_rows = to_json(workbook).Sheet1;
-		user_ticket_rows.forEach(function(current_user_row) {
-			var user_promise = zaf.searchUser(current_user_row.Email);
-			var create_promise = user_promise.then(function(data) {
+		//bug, user ngga lolos validate, tapi tetep kecreate
+
+		// $scope.tickets = [];
+		$scope.views.namefile = workbook.namefile;
+		$scope.user_ticket_rows = to_json(workbook).Sheet1;
+		$scope.user_ticket_rows.forEach(function(row) {
+			if (!$scope.validateRow(row)) {
+				$scope.views.invalidRow.active = true;
+				$scope.$apply();
+				return false;
+			}
+
+			var userRequest = zaf.searchUser(row.Email);
+			userRequest.then(function(data) {
 				var user = data.users[0];
 
 				if (user === undefined) {
-					return zaf.createUser(current_user_row.Email);
-				}
+					row.__exist__ = false;
+					$scope.rows_meta.numOfNonmember++;
 
-				$scope.tableParams.reload();
-				$scope.$apply(function() {
-					$scope.tickets.push({
-						requester_id: user.id,
-						subject: current_user_row.Subject,
-						comment: {body: current_user_row.Body},
-						_meta: current_user_row
-					});
-				});
-
-				return user_promise;
-
-			});
-			console.log(current_user_row);
-			create_promise.then(function(data) {
-				if (data.count > 0) {
+					$scope.$apply();
 					return;
 				}
-				var user = data.user;
-				console.log("ini user baru", user);
 
-				$scope.$apply(function() {
-					$scope.$data.push({
-						requester_id: user.id,
-						subject: current_user_row.Subject,
-						comment: {body: current_user_row.Body},
-						_meta: current_user_row
+				row.Id = user.id;
+				row.__exist__ = true;
+				$scope.tickets.push({
+					requester_id: row.Id,
+					subject: row.Subject,
+					comment: {body: row.Body}
+				});
+				$scope.$apply();
+			}, function(err) {
+				$scope.views.searchUsersError.notify = err.responseText + ", please refresh";
+				$scope.views.searchUsersError.active = true;
+				$scope.$apply();
+			});
+		});
+
+		$scope.$apply();
+		console.log($scope.user_ticket_rows);
+	};
+
+	$scope.createManyUsers = function() {
+		if ($scope.rows_meta.numOfNonmember < 1) {
+			$scope.views.noUsersToCreate.active = true;
+			return false;
+		}
+
+		$scope.user_ticket_rows.forEach(function(row) {
+			if (!$scope.validateRow(row)) {
+				return false;
+			}
+
+			if (!row.__exist__) {
+				var userCreateRequest = zaf.createUser(row.Email);
+				userCreateRequest.then(function(data) {
+					var user = data.user;
+					row.Id = user.id;
+					row.__exist__ = true;
+					$scope.rows_meta.numOfNonmember--;
+					$scope.tickets.push({
+						requester_id: row.Id,
+						subject: row.Subject,
+						comment: {body: row.Body}
 					});
-					$scope.tableParams.reload();
+
+					if ($scope.rows_meta.numOfNonmember < 1) {
+						$scope.views.successCreateUser.active = true;
+						$scope.views.shouldCreateUser.active = false;
+					}
+
+					$scope.$apply();
+				}, function(err) {
+					$scope.views.createUsersError.notify = err.responseText + ", please refresh";
+					$scope.views.createUsersError.active = true;
+					$scope.$apply();
+
+					console.log("kena ",err);
 				});
 
-			});
+			}
 		});
-		console.log($scope.tickets);
-
-
 	};
 
-	$scope.createTickets = function(){
-		if ($scope.tickets.length < 1) return false;
+	$scope.createTickets = function() {
 
-		zaf.createTickets($scope.tickets).then(function(data) {
-			console.log(data, $scope.tickets, " are created");
+		if ($scope.tickets.length < 1) {
+			$scope.views.noTicketsToCreate.active = true;
+			return false;
+		}
+		if ($scope.rows_meta.numOfNonmember > 0)  {
+			$scope.views.shouldCreateUser.active = true;
+
+			console.log("should create users first");
+			return false;
+		}
+
+		console.log('create tickets');
+		// var tickets = [];
+		// $scope.user_ticket_rows.forEach(function(row) {
+		// 	if (row.__exist__) {
+		// 		tickets.push({
+		// 			requester_id: row.Id,
+		// 			subject: row.Subject,
+		// 			comment: {body: row.Body}
+		// 		});
+		// 	}
+		// });
+
+		var createTicketsRequest = zaf.createTickets($scope.tickets);
+		createTicketsRequest.then(function(data) {
+			console.log(data, "has been created");
+
+			$scope.rows_meta.numOfNonmember = 0;
 			$scope.tickets = [];
+			$scope.user_ticket_rows = [];
+
+			$scope.views.successCreateTickets.active = true; 
+			$scope.views.successCreateTickets.active = "Success creating tickets from " + $scope.views.namefile;
+			$scope.views.namefile = "Drag and drop an excel file here";
+			$scope.$apply(); 
 		}, function(err) {
+			$scope.views.createTicketsError.notify = err.responseText + "<strong>, please refresh</strong>";
+			$scope.views.createTicketsError.active = true;
+			$scope.$apply();
 
-		});
-	};
-
-	$scope.createTicketsBulk = function() {
-		if ($scope.tickets.length < 1) return false;
-
-		$scope.tickets.forEach(function(ticket) {
-			console.log(ticket);
-			zaf.createTicket(ticket).then(function(data) {
-
-				console.log(data);
-			}, function(err) {
-				console.log(err);
-			});
+			console.log("kena ",err);
 		});
 
 	};
-
-
 
 	$scope.error = function(err) {
 
 	};
 
-	$scope.check = function() {
-		console.log("OK Check");
+	 $scope.validateRow = function(row) {
+		if (row === undefined) return false;
+		if (!row.hasOwnProperty('Email')) return false;
+		if (!row.hasOwnProperty('Subject')) return false;
+		if (!row.hasOwnProperty('Body')) return false;
+		return true;
 	};
 
-	// TO JSON utils sementara
 	function to_json(workbook) {
 		var result = {};
 		workbook.SheetNames.forEach(function(sheetName) {
@@ -283,5 +421,7 @@ MyApp.controller('ExcelController', ['$scope', 'xlsx', 'zaf', function($scope, x
 		});
 		return result;
 	}
+
+
 
 }]);
